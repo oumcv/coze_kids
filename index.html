@@ -1,41 +1,98 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>我的Coze应用</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>智能错题练习助手</title>
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: #ffffff;
-    }
-    #coze-app {
-      width: 100vw;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f8f9ff;
+      font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
       height: 100vh;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+    #coze-container {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+    }
+    /* 隐藏 SDK 默认元素（标题/输入框/水印等） */
+    #coze-container .coze-title-bar,
+    #coze-container .coze-input-area,
+    #coze-container .coze-watermark,
+    #coze-container .coze-message-list::before {
+      display: none !important;
+    }
+    /* 消息区域全屏适配 */
+    #coze-container .coze-message-list {
+      height: 100% !important;
+      padding: 0 !important;
+      background: transparent !important;
+    }
+    /* 按钮区域优化（适配您的4按钮界面） */
+    .coze-card-button, .coze-action-button {
+      font-size: 1.1rem !important;
+      padding: 12px !important;
+      margin: 8px !important;
+      border-radius: 16px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      transition: transform 0.1s !important;
+    }
+    .coze-card-button:active {
+      transform: scale(0.98) !important;
+    }
+    /* 加载状态优化 */
+    .coze-loading {
+      background: #f8f9ff !important;
+    }
+    /* 移动端安全区域适配 */
+    @supports (padding: max(0px)) {
+      body { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
     }
   </style>
 </head>
 <body>
-  <div id="coze-app"></div>
+  <div id="coze-container"></div>
 
-  <!-- Coze Web SDK -->
-  <script src="https://unpkg.com/@coze/web-sdk@latest/dist/coze-web.js"></script>
+  <script src="https://sf16-sg-default.tiktokcdn.com/obj/eden-sg/coze/1.0.0/web-sdk.js"></script>
   <script>
-    // 👇 替换为你的真实 Bot ID
-    const BOT_ID = "7603669260069666879";
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof CozeWebSDK === 'undefined') {
+        document.body.innerHTML = `<div style="padding:20px;text-align:center;color:#e74c3c">⚠️ Coze SDK 加载失败，请检查网络或稍后重试</div>`;
+        return;
+      }
 
-    // 初始化：全屏嵌入 Coze 应用
-    CozeWebSDK.init({
-      botId: BOT_ID,
-      container: document.getElementById('coze-app'),
-      // 可选：隐藏默认输入框（如果你的 UI 完全由工作流控制）
-      // showInput: false
+      try {
+        // 初始化 SDK - 关键配置：隐藏所有非必要元素
+        const coze = new CozeWebSDK({
+          botId: '7603669260069666879', // ⚠️ 替换为您的 Bot ID（在 Coze 后台 Develop 页 URL 中获取）
+          env: 'prod',
+          config: {
+            showTitle: false,      // 隐藏标题栏
+            showInput: false,      // 隐藏输入框
+            showLog: false,        // 隐藏日志
+            themeColor: '#4361ee', // 主题色（可选，匹配您的设计）
+            position: 'center',    // 居中显示内容
+            width: '100%',
+            height: '100%'
+          }
+        });
+
+        // 挂载到容器
+        coze.mount('#coze-container').then(() => {
+          console.log('Coze 应用加载成功');
+        }).catch(err => {
+          console.error('Coze 挂载失败:', err);
+          document.getElementById('coze-container').innerHTML = 
+            `<div style="padding:20px;text-align:center;color:#e74c3c">❌ 应用初始化失败，请刷新重试</div>`;
+        });
+      } catch (e) {
+        console.error('SDK 初始化异常:', e);
+        document.body.innerHTML = `<div style="padding:20px;text-align:center;color:#e74c3c">⚙️ 配置错误，请联系管理员</div>`;
+      }
     });
   </script>
 </body>
 </html>
-
-
